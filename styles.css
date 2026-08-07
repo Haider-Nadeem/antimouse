@@ -1,0 +1,69 @@
+/* antimouse overlay styles — attached to the overlay's Shadow DOM. */
+
+:host {
+  all: initial;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 20vh;
+  background: rgba(0, 0, 0, 0.35);
+  font-family: system-ui, sans-serif;
+}
+
+.bar {
+  width: min(560px, 90vw);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 20px;
+  border: none;
+  outline: none;
+  font-size: 20px;
+  background: transparent;
+  color: #111;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid #eee;
+}
+
+ul:empty {
+  border-top: none;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #333;
+}
+
+li.selected {
+  background: #f0f4ff;
+}
+
+.href {
+  color: #888;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 45%;
+}

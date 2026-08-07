@@ -20,14 +20,25 @@ const buildIndex = () => {
     const label = a.textContent.replace(/\s+/g, " ").trim().toLowerCase();
     const href = a.href; // browser resolves this to an absolute URL for us
 
-    // Skip empty labels and non-navigational links (javascript:, empty).
-    if (!label || !href || href.startsWith("javascript:")) continue;
+    // Skip non-navigational links (javascript:, empty href).
+    if (!href || href.startsWith("javascript:")) {
+      continue;
+    }
 
-    // First link wins on duplicate text; keeps the topmost/nav link.
-    if (!(label in index)) index[label] = href;
-
-    // Alt: index icon-only links by their aria-label/title when text is empty.
-    // else if (!label) { const alt = (a.getAttribute("aria-label") || a.title || "").toLowerCase().trim(); if (alt && !(alt in index)) index[alt] = href; }
+    if (label) {
+      // First link wins on duplicate text; keeps the topmost/nav link.
+      if (!(label in index)) {
+        index[label] = href;
+      }
+    } else {
+      // Index icon-only links by their aria-label/title when text is empty.
+      const alt = (a.getAttribute("aria-label") || a.title || "")
+        .toLowerCase()
+        .trim();
+      if (alt && !(alt in index)) {
+        index[alt] = href;
+      }
+    }
   }
 
   return index;
@@ -81,7 +92,21 @@ const closeOverlay = () => {
   overlayRefs = null;
 };
 
-const openOverlay = () => {
+// Load styles.css once and cache it as a constructable stylesheet.
+// styles.css must be listed under web_accessible_resources in the manifest.
+let styleSheet = null;
+const loadStyles = async () => {
+  if (styleSheet) return styleSheet;
+  const css = await fetch(chrome.runtime.getURL("styles.css")).then((r) =>
+    r.text(),
+  );
+  styleSheet = new CSSStyleSheet();
+  styleSheet.replaceSync(css);
+  return styleSheet;
+};
+loadStyles(); // warm the cache so the first open has no unstyled flash
+
+const openOverlay = async () => {
   if (overlay) return;
 
   index = buildIndex();
@@ -91,32 +116,8 @@ const openOverlay = () => {
 
   overlay = document.createElement("div");
   overlay.attachShadow({ mode: "open" }); // isolate our styles from the page
+  overlay.shadowRoot.adoptedStyleSheets = [await loadStyles()];
   overlay.shadowRoot.innerHTML = `
-    <style>
-      :host { all: initial; }
-      .backdrop {
-        position: fixed; inset: 0; z-index: 2147483647;
-        display: flex; align-items: flex-start; justify-content: center;
-        padding-top: 20vh; background: rgba(0, 0, 0, 0.35);
-        font-family: system-ui, sans-serif;
-      }
-      .bar {
-        width: min(560px, 90vw); background: #fff; border-radius: 12px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden;
-      }
-      input {
-        width: 100%; box-sizing: border-box; padding: 16px 20px; border: none;
-        outline: none; font-size: 20px; background: transparent; color: #111;
-      }
-      ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid #eee; }
-      ul:empty { border-top: none; }
-      li {
-        display: flex; justify-content: space-between; gap: 16px; cursor: pointer;
-        padding: 10px 20px; font-size: 14px; color: #333;
-      }
-      li.selected { background: #f0f4ff; }
-      .href { color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 45%; }
-    </style>
     <div class="backdrop">
       <div class="bar">
         <input type="text" placeholder="Search this page…" />
