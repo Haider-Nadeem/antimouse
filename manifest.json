@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "antimouse",
+  "version": "0.1.0",
+  "description": "Spotlight-style search bar that traverses the current page.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
