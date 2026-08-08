@@ -6,7 +6,13 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": [
+        "src/page-links.js",
+        "src/settings.js",
+        "src/search.js",
+        "src/overlay.js",
+        "src/main.js"
+      ],
       "run_at": "document_idle"
     }
   ],
