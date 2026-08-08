@@ -1,10 +1,9 @@
 const MAX_SUGGESTIONS = 8;
 
-// A suggestion is { label, hint, run }. Page links become suggestions that
-// navigate; settings already are suggestions (see settings.js).
-const toLinkSuggestion = ([label, href]) => ({
+const toLinkSuggestion = ([label, { href, el }]) => ({
   label,
   hint: href,
+  el,
   run: () => navigateTo(href),
 });
 
@@ -27,8 +26,6 @@ const search = (query, pageLinks) => {
 
   const q = query.trim().toLowerCase();
 
-  // Alt: fuzzy (subsequence) matching so "hme" matches "home".
-  // filter: (it) => [...q].reduce((i, c) => i >= 0 ? it.label.indexOf(c, i) + 1 : -1, 0) > 0
   return q
     ? rankByLabel(Object.entries(pageLinks).map(toLinkSuggestion), q)
     : [];

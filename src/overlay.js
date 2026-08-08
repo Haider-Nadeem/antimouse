@@ -24,6 +24,15 @@ const navigateTo = (href) => {
   location.href = href; // same-tab navigation
 };
 
+const baseDpr = window.devicePixelRatio;
+const applyZoomScale = () => {
+  const bar = overlayRefs?.bar;
+  if (bar) {
+    bar.style.transform = `scale(${baseDpr / window.devicePixelRatio})`;
+  }
+};
+window.addEventListener("resize", applyZoomScale); // zoom changes fire resize
+
 const renderSuggestions = () => {
   const { list } = overlayRefs;
   list.innerHTML = "";
@@ -41,11 +50,59 @@ const refreshSuggestions = (query) => {
   suggestions = search(query, pageLinks);
   selected = 0;
   renderSuggestions();
+  highlightSelected();
+};
+
+// Draw a box over the selected suggestion's link on the page so the user can see
+// where they'll land. Settings (no element) and empty results hide the box.
+const highlightSelected = () => {
+  const { highlight } = overlayRefs;
+  const el = suggestions[selected]?.el;
+  const rect = el?.getBoundingClientRect();
+
+  if (!rect || (rect.width === 0 && rect.height === 0)) {
+    highlight.hidden = true;
+    return;
+  }
+
+  // Scroll off-screen targets into view; on-screen links stay put (no jitter).
+  const inView =
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <= innerHeight &&
+    rect.right <= innerWidth;
+  if (!inView) {
+    el.scrollIntoView({ block: "center", inline: "nearest" });
+  }
+
+  const r = el.getBoundingClientRect(); // re-read; scrolling may have moved it
+  Object.assign(highlight.style, {
+    top: `${r.top}px`,
+    left: `${r.left}px`,
+    width: `${r.width}px`,
+    height: `${r.height}px`,
+  });
+  highlight.hidden = false;
+};
+
+// Inline autocomplete like Spotlight: when the top hit starts with what the
+// user typed, fill in the rest and select it (rendered highlighted) so the next
+// keystroke overwrites it. Only on insertion, so backspacing still deletes.
+const autocomplete = (e, typed) => {
+  const inserting = !e.inputType || e.inputType.startsWith("insert");
+  const top = suggestions[0];
+  if (e.isComposing || !inserting || !typed || !top) return;
+  if (!top.label.startsWith(typed.toLowerCase())) return;
+
+  const { input } = overlayRefs;
+  input.value = typed + top.label.slice(typed.length);
+  input.setSelectionRange(typed.length, input.value.length); // select the completion
 };
 
 const moveSelection = (delta) => {
   selected = Math.max(0, Math.min(selected + delta, suggestions.length - 1));
   renderSuggestions();
+  highlightSelected();
 };
 
 const openOverlay = async () => {
@@ -56,10 +113,11 @@ const openOverlay = async () => {
   selected = 0;
 
   overlay = document.createElement("div");
-  overlay.attachShadow({ mode: "open" }); // isolate our styles from the page
+  overlay.attachShadow({ mode: "open" });
   overlay.shadowRoot.adoptedStyleSheets = [await loadStyles()];
   overlay.shadowRoot.innerHTML = `
     <div class="backdrop">
+      <div class="highlight" hidden></div>
       <div class="bar">
         <input type="text" placeholder="Search this page…" />
         <ul></ul>
@@ -70,9 +128,15 @@ const openOverlay = async () => {
   const input = overlay.shadowRoot.querySelector("input");
   const list = overlay.shadowRoot.querySelector("ul");
   const backdrop = overlay.shadowRoot.querySelector(".backdrop");
-  overlayRefs = { input, list };
+  const bar = overlay.shadowRoot.querySelector(".bar");
+  const highlight = overlay.shadowRoot.querySelector(".highlight");
+  overlayRefs = { input, list, bar, highlight };
 
-  input.addEventListener("input", () => refreshSuggestions(input.value));
+  input.addEventListener("input", (e) => {
+    const typed = input.value;
+    refreshSuggestions(typed);
+    autocomplete(e, typed);
+  });
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "ArrowDown") {
@@ -101,6 +165,7 @@ const openOverlay = async () => {
   }
 
   document.body.append(overlay);
+  applyZoomScale(); // match the current zoom before showing
   input.focus();
 };
 

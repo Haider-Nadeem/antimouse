@@ -1,5 +1,3 @@
-// Read the current page's navigable links into a plain map of
-// { label -> absolute href }. Rebuilt on each open; never persisted.
 const indexPageLinks = () => {
   const links = {};
 
@@ -15,7 +13,7 @@ const indexPageLinks = () => {
     if (label) {
       // First link wins on duplicate text; keeps the topmost/nav link.
       if (!(label in links)) {
-        links[label] = href;
+        links[label] = { href, el: a };
       }
     } else {
       // Index icon-only links by their aria-label/title when text is empty.
@@ -23,7 +21,7 @@ const indexPageLinks = () => {
         .toLowerCase()
         .trim();
       if (alt && !(alt in links)) {
-        links[alt] = href;
+        links[alt] = { href, el: a };
       }
     }
   }
