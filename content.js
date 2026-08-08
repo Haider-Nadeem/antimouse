@@ -154,6 +154,14 @@ const openOverlay = async () => {
     if (e.target === backdrop) closeOverlay();
   });
 
+  // Keyboard events are `composed`, so they bubble out of the Shadow DOM to the
+  // page's document-level listeners (e.g. GitHub's single-key shortcuts), which
+  // steal focus. Stop them at the host so typing stays in our search bar. Our
+  // own hotkey/Escape handler is unaffected — it runs in the earlier capture phase.
+  for (const type of ["keydown", "keyup", "keypress"]) {
+    overlay.addEventListener(type, (e) => e.stopPropagation());
+  }
+
   document.body.append(overlay);
   input.focus();
 };
