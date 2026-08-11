@@ -1,7 +1,4 @@
 // Settings mode: type ">" to browse/configure options instead of page links.
-// The menu has two levels — a root list, and a per-setting option submenu
-// (currently just theme). settingsView tracks which level is showing; it's reset
-// on open and whenever the user leaves settings mode (see overlay.js / search.js).
 const SETTINGS_PREFIX = ">";
 
 let settingsView = "root"; // "root" | "theme"

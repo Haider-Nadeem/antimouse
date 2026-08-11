@@ -1,10 +1,16 @@
 const MAX_SUGGESTIONS = 8;
 
-const toLinkSuggestion = ([label, { href, el }]) => ({
+// A link navigates; a button (no href) closes the palette and clicks in place.
+const toSuggestion = ([label, target]) => ({
   label,
-  hint: href,
-  el,
-  run: () => navigateTo(href),
+  hint: target.href ?? "",
+  el: target.el,
+  run: target.href
+    ? () => navigateTo(target.href)
+    : () => {
+        closeOverlay();
+        target.el.click();
+      },
 });
 
 // Keep items whose label matches the query; exact-prefix matches float up.
@@ -17,8 +23,8 @@ const rankByLabel = (items, query) =>
   ).slice(0, MAX_SUGGESTIONS);
 
 // Turn a raw query into ranked suggestions. ">" switches to settings mode
-// (empty lists all settings); otherwise search page links once something's typed.
-const search = (query, pageLinks) => {
+// (empty lists all settings); otherwise search page targets once something's typed.
+const search = (query, pageTargets) => {
   if (query.startsWith(SETTINGS_PREFIX)) {
     const q = query.slice(SETTINGS_PREFIX.length).trim().toLowerCase();
     return rankByLabel(settingsItems(), q);
@@ -29,6 +35,6 @@ const search = (query, pageLinks) => {
   const q = query.trim().toLowerCase();
 
   return q
-    ? rankByLabel(Object.entries(pageLinks).map(toLinkSuggestion), q)
+    ? rankByLabel(Object.entries(pageTargets).map(toSuggestion), q)
     : [];
 };

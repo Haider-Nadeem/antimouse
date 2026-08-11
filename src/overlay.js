@@ -3,7 +3,7 @@
 
 let overlay = null; // the shadow-host element, or null when closed
 let overlayRefs = null; // { input, list } for the open overlay
-let pageLinks = {}; // links indexed when the overlay opened
+let pageTargets = {}; // links & buttons indexed when the overlay opened
 let suggestions = []; // current suggestions shown in the list
 let selected = 0; // highlighted suggestion index
 
@@ -57,7 +57,7 @@ const renderSuggestions = () => {
 };
 
 const refreshSuggestions = (query) => {
-  suggestions = search(query, pageLinks);
+  suggestions = search(query, pageTargets);
   selectIndex(0);
 };
 
@@ -129,7 +129,7 @@ const moveSelection = (delta) =>
 const openOverlay = async () => {
   if (overlay) return;
 
-  pageLinks = indexPageLinks();
+  pageTargets = indexPageTargets();
   settingsView = "root"; // always start at the top of the settings menu
   suggestions = [];
   selected = 0;
