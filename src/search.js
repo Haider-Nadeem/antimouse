@@ -21,8 +21,10 @@ const rankByLabel = (items, query) =>
 const search = (query, pageLinks) => {
   if (query.startsWith(SETTINGS_PREFIX)) {
     const q = query.slice(SETTINGS_PREFIX.length).trim().toLowerCase();
-    return rankByLabel(SETTINGS, q);
+    return rankByLabel(settingsItems(), q);
   }
+
+  settingsView = "root"; // left settings mode; reset the menu for next entry
 
   const q = query.trim().toLowerCase();
 

@@ -1,10 +1,45 @@
 // Settings mode: type ">" to browse/configure options instead of page links.
-// Add new settings here — each is a suggestion with its own run() action.
+// The menu has two levels — a root list, and a per-setting option submenu
+// (currently just theme). settingsView tracks which level is showing; it's reset
+// on open and whenever the user leaves settings mode (see overlay.js / search.js).
 const SETTINGS_PREFIX = ">";
-const SETTINGS = [
-  {
-    label: "set route",
-    hint: "setting",
-    run: () => {}, // TODO: define what entering this setting does.
-  },
+
+let settingsView = "root"; // "root" | "theme"
+
+// Root menu. Plain actions run in place; settings with choices open a submenu.
+const ROOT_SETTINGS = [
+  { label: "set route", hint: "setting", run: () => {} }, // TODO: define behaviour
+  { label: "theme", hint: "setting", run: () => enterThemeMenu() },
 ];
+
+const enterThemeMenu = () => {
+  settingsView = "theme";
+  overlayRefs.input.value = SETTINGS_PREFIX; // stay in settings mode, clear the filter
+  refreshSuggestions(SETTINGS_PREFIX);
+};
+
+// A theme choice. Highlighting it previews the look live without persisting;
+// pressing enter saves it and drops back to the cleared page-search input.
+const themeOption = (value) => ({
+  label: value,
+  hint: readSetting("theme") === value ? "current" : "theme",
+  preview: () => setBarTheme(value),
+  run: () => {
+    writeSetting("theme", value);
+    settingsView = "root";
+    overlayRefs.input.value = "";
+    refreshSuggestions("");
+  },
+});
+
+// Current theme first, so opening the submenu previews what's already applied.
+const themeOptions = () => {
+  const current = readSetting("theme");
+  return ["dark", "light"]
+    .sort((a, b) => (a === current ? -1 : b === current ? 1 : 0))
+    .map(themeOption);
+};
+
+// Items for whichever settings level is currently showing.
+const settingsItems = () =>
+  settingsView === "theme" ? themeOptions() : ROOT_SETTINGS;

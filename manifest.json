@@ -8,6 +8,7 @@
       "matches": ["<all_urls>"],
       "js": [
         "src/page-links.js",
+        "src/settings-store.js",
         "src/settings.js",
         "src/search.js",
         "src/overlay.js",

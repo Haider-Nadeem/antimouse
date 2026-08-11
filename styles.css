@@ -12,15 +12,20 @@
   align-items: flex-start;
   justify-content: center;
   padding-top: 20vh;
-  background: rgba(0, 0, 0, 0.35);
-  font-family: system-ui, sans-serif;
+  background: rgba(0, 0, 0, 0.6);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 .bar {
-  width: min(560px, 90vw);
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: min(600px, 90vw);
+  background: #09090b;
+  color: #fafafa;
+  border: 1px solid #27272a;
+  border-radius: 0; /* sharp edges */
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 24px 60px -12px rgba(0, 0, 0, 0.7);
   overflow: hidden;
   transform-origin: top center;
 }
@@ -30,48 +35,137 @@ input {
   box-sizing: border-box;
   padding: 16px 20px;
   border: none;
+  border-bottom: 1px solid #27272a;
   outline: none;
-  font-size: 20px;
+  font-size: 16px;
+  letter-spacing: 0.01em;
   background: transparent;
-  color: #111;
+  color: #fafafa;
+  caret-color: #fafafa;
+}
+
+input::placeholder {
+  color: #71717a;
 }
 
 input::selection {
-  background: #cfe0ff;
-  color: #111;
+  background: #fafafa;
+  color: #09090b;
 }
 
 ul {
   list-style: none;
   margin: 0;
-  padding: 0;
-  border-top: 1px solid #eee;
+  padding: 6px;
+  max-height: 340px;
+  overflow-y: auto;
 }
 
 ul:empty {
-  border-top: none;
+  padding: 0;
 }
 
 li {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   cursor: pointer;
-  padding: 10px 20px;
+  padding: 10px 14px;
   font-size: 14px;
-  color: #333;
+  color: #a1a1aa;
+  border-radius: 0; /* sharp edges */
+  transition: background 80ms ease, color 80ms ease;
+}
+
+li:hover {
+  color: #fafafa;
 }
 
 li.selected {
-  background: #f0f4ff;
+  background: #1c1c1f;
+  color: #fafafa;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .href {
-  color: #888;
+  color: #52525b;
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 45%;
+}
+
+li.selected .href {
+  color: #a1a1aa;
+}
+
+/* Thin, unobtrusive scrollbar to match the dark theme. */
+ul::-webkit-scrollbar {
+  width: 8px;
+}
+
+ul::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border: 2px solid #09090b;
+  border-radius: 4px;
+}
+
+/* Light theme — applied when the bar carries the .light class. */
+.bar.light {
+  background: #ffffff;
+  color: #09090b;
+  border-color: #e4e4e7;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 24px 60px -12px rgba(0, 0, 0, 0.25);
+}
+
+.bar.light input {
+  color: #09090b;
+  caret-color: #09090b;
+  border-bottom-color: #e4e4e7;
+}
+
+.bar.light input::placeholder {
+  color: #a1a1aa;
+}
+
+.bar.light input::selection {
+  background: #09090b;
+  color: #fafafa;
+}
+
+.bar.light li {
+  color: #52525b;
+}
+
+.bar.light li:hover {
+  color: #09090b;
+}
+
+.bar.light li.selected {
+  background: #f4f4f5;
+  color: #09090b;
+}
+
+.bar.light .href {
+  color: #a1a1aa;
+}
+
+.bar.light li.selected .href {
+  color: #52525b;
+}
+
+.bar.light ul::-webkit-scrollbar-thumb {
+  background: #e4e4e7;
+  border-color: #ffffff;
 }
 
 .highlight {

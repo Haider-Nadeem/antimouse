@@ -24,6 +24,15 @@ const navigateTo = (href) => {
   location.href = href; // same-tab navigation
 };
 
+// Paint a theme onto the open overlay without persisting it — used for live
+// preview. Dark is the default look; "light" flips the bar to the white palette.
+const setBarTheme = (theme) => {
+  overlayRefs?.bar?.classList.toggle("light", theme === "light");
+};
+
+// Restore the saved theme (undoes any unsaved preview).
+const applyTheme = () => setBarTheme(readSetting("theme"));
+
 const baseDpr = window.devicePixelRatio;
 const applyZoomScale = () => {
   const bar = overlayRefs?.bar;
@@ -42,14 +51,29 @@ const renderSuggestions = () => {
     li.className = i === selected ? "selected" : "";
     li.innerHTML = `<span class="label">${item.label}</span><span class="href">${item.hint}</span>`;
     li.addEventListener("click", () => item.run());
+    li.addEventListener("mouseenter", () => selectIndex(i));
     list.append(li);
   });
 };
 
 const refreshSuggestions = (query) => {
   suggestions = search(query, pageLinks);
-  selected = 0;
+  selectIndex(0);
+};
+
+// Preview the highlighted item's side effect (currently just a theme swap).
+// Items without a preview restore the saved theme, so moving off a theme option
+// — or leaving the menu entirely — reverts any unsaved preview.
+const previewSelected = () => {
+  const preview = suggestions[selected]?.preview;
+  preview ? preview() : applyTheme();
+};
+
+// Move the highlight to a specific index and sync everything that tracks it.
+const selectIndex = (i) => {
+  selected = i;
   renderSuggestions();
+  previewSelected();
   highlightSelected();
 };
 
@@ -99,16 +123,14 @@ const autocomplete = (e, typed) => {
   input.setSelectionRange(typed.length, input.value.length); // select the completion
 };
 
-const moveSelection = (delta) => {
-  selected = Math.max(0, Math.min(selected + delta, suggestions.length - 1));
-  renderSuggestions();
-  highlightSelected();
-};
+const moveSelection = (delta) =>
+  selectIndex(Math.max(0, Math.min(selected + delta, suggestions.length - 1)));
 
 const openOverlay = async () => {
   if (overlay) return;
 
   pageLinks = indexPageLinks();
+  settingsView = "root"; // always start at the top of the settings menu
   suggestions = [];
   selected = 0;
 
@@ -165,6 +187,7 @@ const openOverlay = async () => {
   }
 
   document.body.append(overlay);
+  applyTheme(); // paint the stored theme before showing
   applyZoomScale(); // match the current zoom before showing
   input.focus();
 };
