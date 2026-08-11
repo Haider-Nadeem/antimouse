@@ -5,7 +5,6 @@ let settingsView = "root"; // "root" | "theme"
 
 // Root menu. Plain actions run in place; settings with choices open a submenu.
 const ROOT_SETTINGS = [
-  { label: "set route", hint: "setting", run: () => {} }, // TODO: define behaviour
   { label: "theme", hint: "setting", run: () => enterThemeMenu() },
 ];
 
