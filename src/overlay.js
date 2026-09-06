@@ -7,6 +7,17 @@ let pageTargets = {}; // links & buttons indexed when the overlay opened
 let suggestions = []; // current suggestions shown in the list
 let selected = 0; // highlighted suggestion index
 
+let observer = null; // watches the page for DOM changes while the overlay is open
+
+// Trailing debounce: coalesce bursts (e.g. a stream of DOM mutations).
+const debounce = (fn, ms) => {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+};
+
 let styleSheet = null;
 const loadStyles = async () => {
   if (styleSheet) return styleSheet;
@@ -168,7 +179,15 @@ const openOverlay = async () => {
       e.preventDefault();
       moveSelection(-1);
     } else if (e.key === "Enter" && suggestions[selected]) {
-      suggestions[selected].run();
+      const item = suggestions[selected];
+      // Cmd/Ctrl+Enter opens a navigable result in a new tab; buttons (no href)
+      // ignore the modifier and just run their normal click.
+      if ((e.metaKey || e.ctrlKey) && item.href) {
+        closeOverlay();
+        window.open(item.href, "_blank");
+      } else {
+        item.run();
+      }
     }
   });
 
@@ -190,9 +209,22 @@ const openOverlay = async () => {
   applyTheme(); // paint the stored theme before showing
   applyZoomScale(); // match the current zoom before showing
   input.focus();
+
+  // Keep results fresh on dynamic pages (SPAs) by re-indexing when the DOM
+  // changes. Connected after our own append so it doesn't observe that; our
+  // overlay's internals live in Shadow DOM, so they're outside this subtree.
+  const reindex = debounce(() => {
+    if (!overlay) return;
+    pageTargets = indexPageTargets();
+    refreshSuggestions(overlayRefs.input.value);
+  }, 150);
+  observer = new MutationObserver(reindex);
+  observer.observe(document.body, { childList: true, subtree: true });
 };
 
 const closeOverlay = () => {
+  observer?.disconnect();
+  observer = null;
   overlay?.remove();
   overlay = null;
   overlayRefs = null;

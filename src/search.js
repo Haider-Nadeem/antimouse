@@ -4,6 +4,7 @@ const MAX_SUGGESTIONS = 8;
 const toSuggestion = ([label, target]) => ({
   label,
   hint: target.href ?? "",
+  href: target.href, // openable URL for new-tab; undefined for buttons
   el: target.el,
   run: target.href
     ? () => navigateTo(target.href)
@@ -12,6 +13,29 @@ const toSuggestion = ([label, target]) => ({
         target.el.click();
       },
 });
+
+// Treat a query as a URL when it's already absolute, or looks like a bare
+// domain (a dotted token with no spaces). Otherwise it's a web-search term.
+const toUrl = (s) => {
+  if (/^https?:\/\//i.test(s)) return s;
+  if (/^[^\s.]+\.[^\s]{2,}$/.test(s)) return `https://${s}`;
+  return null;
+};
+
+// Last-resort suggestion so a query never dead-ends: open it as a URL if it
+// looks like one, otherwise search the web for it.
+const webFallback = (query) => {
+  const raw = query.trim();
+  const url = toUrl(raw);
+  const href =
+    url ?? `https://www.google.com/search?q=${encodeURIComponent(raw)}`;
+  return {
+    label: url ? raw : `Search the web for "${raw}"`,
+    hint: url ? "open URL" : "google",
+    href,
+    run: () => navigateTo(href),
+  };
+};
 
 // Keep items whose label matches the query; exact-prefix matches float up.
 const rankByLabel = (items, query) =>
@@ -33,8 +57,10 @@ const search = (query, pageTargets) => {
   settingsView = "root"; // left settings mode; reset the menu for next entry
 
   const q = query.trim().toLowerCase();
+  if (!q) return [];
 
-  return q
-    ? rankByLabel(Object.entries(pageTargets).map(toSuggestion), q)
-    : [];
+  // Page matches first; the web/URL fallback always trails as the last option.
+  const items = rankByLabel(Object.entries(pageTargets).map(toSuggestion), q);
+  items.push(webFallback(query));
+  return items;
 };
