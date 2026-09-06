@@ -1,23 +1,33 @@
-// Persistent user settings, namespaced in localStorage.
-//
-// To add a setting: append one entry to SETTING_DEFS with its default and the
-// values it accepts. readSetting/writeSetting validate against the schema, so
-// nothing else needs to change here — the UI just calls read/write by key.
 const SETTINGS_NS = "antimouse:";
 
 const SETTING_DEFS = {
   theme: { default: "dark", values: ["dark", "light"] },
 };
 
-// Read a setting, falling back to its default when unset or corrupted.
-const readSetting = (key) => {
-  const def = SETTING_DEFS[key];
-  const stored = localStorage.getItem(SETTINGS_NS + key);
-  return def.values.includes(stored) ? stored : def.default;
-};
+// Live cache of stored values, keyed by setting name. Starts at defaults and is
+// backfilled from chrome.storage.local below.
+const settingsCache = Object.fromEntries(
+  Object.entries(SETTING_DEFS).map(([key, def]) => [key, def.default]),
+);
+
+// Seed the cache from storage on load. Values that fail validation (unset or
+// corrupted) keep their default.
+chrome.storage.local.get(
+  Object.keys(SETTING_DEFS).map((k) => SETTINGS_NS + k),
+  (stored) => {
+    for (const [key, def] of Object.entries(SETTING_DEFS)) {
+      const value = stored[SETTINGS_NS + key];
+      if (def.values.includes(value)) settingsCache[key] = value;
+    }
+  },
+);
+
+// Read a setting synchronously from the cache.
+const readSetting = (key) => settingsCache[key];
 
 // Persist a setting; ignores values the schema doesn't allow.
 const writeSetting = (key, value) => {
   if (!SETTING_DEFS[key]?.values.includes(value)) return;
-  localStorage.setItem(SETTINGS_NS + key, value);
+  settingsCache[key] = value;
+  chrome.storage.local.set({ [SETTINGS_NS + key]: value });
 };

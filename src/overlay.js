@@ -76,7 +76,15 @@ const renderSuggestions = () => {
   suggestions.forEach((item, i) => {
     const li = document.createElement("li");
     li.className = i === selected ? "selected" : "";
-    li.innerHTML = `<span class="label">${item.label}</span><span class="href">${item.hint}</span>`;
+
+    const label = document.createElement("span");
+    label.className = "label";
+    label.textContent = item.label;
+    const href = document.createElement("span");
+    href.className = "href";
+    href.textContent = item.hint;
+    li.append(label, href);
+
     li.addEventListener("click", () => item.run());
     li.addEventListener("mouseenter", () => selectIndex(i));
     list.append(li);
@@ -246,8 +254,4 @@ const closeOverlay = () => {
   overlay?.remove();
   overlay = null;
   overlayRefs = null;
-};
-
-const toggleOverlay = () => {
-  overlay ? closeOverlay() : openOverlay();
 };

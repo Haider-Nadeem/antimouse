@@ -1,0 +1,10 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- antimouse icon: a command-prompt motif in the brand palette.
+       Dark keycap-style tile, blue chevron prompt, off-white caret cursor. -->
+  <rect x="32" y="32" width="960" height="960" rx="208" fill="#09090b"/>
+  <rect x="36" y="36" width="952" height="952" rx="204" fill="none" stroke="#27272a" stroke-width="8"/>
+  <!-- chevron prompt "❯" -->
+  <path d="M320 352 L480 512 L320 672" fill="none" stroke="#3b82f6" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- caret cursor block -->
+  <rect x="560" y="608" width="192" height="72" rx="36" fill="#fafafa"/>
+</svg>
