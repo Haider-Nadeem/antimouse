@@ -9,6 +9,22 @@ let selected = 0; // highlighted suggestion index
 
 let observer = null; // watches the page for DOM changes while the overlay is open
 
+// Rotating placeholder tips — one is picked at random each time the overlay
+// opens, surfacing a feature the user might not know about.
+const HINTS = [
+  "Cmd+Enter opens a result in a new tab",
+  "Type > to open settings",
+  "Switch between light and dark themes in the settings (type '>')",
+  "Type a URL like github.com to jump straight there",
+  "The last result always searches the web",
+  "Use ↑ and ↓ to move, Enter to go",
+  "Buttons are searchable too, not just links",
+  "Results refresh live as the page changes",
+];
+
+const randomHint = () =>
+  `Hint 💡: ${HINTS[Math.floor(Math.random() * HINTS.length)]}`;
+
 // Trailing debounce: coalesce bursts (e.g. a stream of DOM mutations).
 const debounce = (fn, ms) => {
   let timer = null;
@@ -152,7 +168,7 @@ const openOverlay = async () => {
     <div class="backdrop">
       <div class="highlight" hidden></div>
       <div class="bar">
-        <input type="text" placeholder="Search this page…" />
+        <input type="text" />
         <ul></ul>
       </div>
     </div>
@@ -164,6 +180,8 @@ const openOverlay = async () => {
   const bar = overlay.shadowRoot.querySelector(".bar");
   const highlight = overlay.shadowRoot.querySelector(".highlight");
   overlayRefs = { input, list, bar, highlight };
+
+  input.placeholder = randomHint();
 
   input.addEventListener("input", (e) => {
     const typed = input.value;
