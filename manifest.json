@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "Spotlight-style search bar that traverses the current page.",
   "author": "Haider Mirza",
+  "homepage_url": "https://github.com/Haider-Nadeem/antimouse",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
